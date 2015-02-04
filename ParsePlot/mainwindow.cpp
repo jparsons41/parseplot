@@ -136,7 +136,7 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
         ui->label->setText(fPath);
 
         const IFS_FILE_BLOCK *blockFileHeader;
-        if (!readFileHeader(&inFile, &fileHeader))
+        if (!readIfsFileHeader(&inFile, &fileHeader))
             qDebug("Error Reading File");
         blockFileHeader = reinterpret_cast<const IFS_FILE_BLOCK *>(fileHeader.constData());
 
@@ -158,7 +158,7 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
              ui->progressBar_input->setValue(1+100*inFile.pos()/inFile.size());
              loop++;
 
-             if (!readNextHeader((&inFile), &header))
+             if (!readNextIfsHeader((&inFile), &header))
                 qDebug("Error Reading File");
 
              block = reinterpret_cast<const IFS_BLOCK *>(header.constData());
@@ -240,7 +240,7 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
     }
 
 
-    if (SensorSelected == "DIG-8107")
+    if (SensorSelected == "DIG-8207")
     {
         x.clear();
         QDirModel *fModel = new QDirModel(this);
@@ -260,23 +260,23 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
 
         double freq = 0;
 
-        const DIG8107_FILE_BLOCK *blockFileHeader;
-        if (!readFiledig2Header(&inFile, &fileHeader))
+        const DIG8207_FILE_BLOCK *blockFileHeader;
+        if (!readFileDIG8207Header(&inFile, &fileHeader))
             qDebug("Error Reading File");
-        blockFileHeader = reinterpret_cast<const DIG8107_FILE_BLOCK *>(fileHeader.constData());
+        blockFileHeader = reinterpret_cast<const DIG8207_FILE_BLOCK *>(fileHeader.constData());
 
         QString magicStr(fileHeader.left(4));
         QString locationStr(fileHeader.mid(12,8));       //need to change magic numbers
         QString nameStr(fileHeader.mid(36,24));       //need to change magic numbers
 
         // QString magicStr(header.left(4));
-        const DIG8107_BLOCK *block;
+        const DIG8207_BLOCK *block;
         inFile.seek(96);            //set begining at start of block header
          int loop = 0;
 
          for( size_t j=0; j<8; j++ )
          {
-              dig8107_data[j].clear( );
+              dig8207_data[j].clear( );
          }
         //for( size_t j=0; j<1; j++ )
 
@@ -285,10 +285,10 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
              ui->progressBar_input->setValue(1+100*inFile.pos()/inFile.size());
              loop++;
 
-             if (!readNextdig2Header((&inFile), &header))
+             if (!readNextDIG8207Header((&inFile), &header))
                 qDebug("Error Reading File");
 
-             block = reinterpret_cast<const DIG8107_BLOCK *>(header.constData());
+             block = reinterpret_cast<const DIG8207_BLOCK *>(header.constData());
 
              qint64 firstBlockTimestamp = block->utm;
              double timestampMSecs = (double)firstBlockTimestamp * double(1000);
@@ -326,7 +326,7 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
 
                    raw.push_back( value );
 
-                   dig8107_data[j].append( value );
+                   dig8207_data[j].append( value );
 
                    if(j == 0)
                    {
@@ -346,7 +346,7 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
         inFile.close();
     }
 
-    if (SensorSelected == "DIG-8207")
+    if (SensorSelected == "DIG-8107")
     {
          x.clear();
         int count = 0;
@@ -368,17 +368,17 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
         ui->pushButton_4->setEnabled(false);
 
         int channels;
-        const DIG8207_BLOCK *block;
-        const DIG8207_BLOCK_FOOTER *blockFooter;
-        if (!readNextDigHeader(&inFile, &header))
+        const DIG8107_BLOCK *block;
+        const DIG8107_BLOCK_FOOTER *blockFooter;
+        if (!readNextDIG8107Header(&inFile, &header))
             qDebug("Error Reading File");
 
-        block = reinterpret_cast<const DIG8207_BLOCK *>(header.constData());
+        block = reinterpret_cast<const DIG8107_BLOCK *>(header.constData());
 
         inFile.seek(0);
         x.clear();
         for (int i=0; i<8; i++)
-            dig8207_data[i].clear();
+            dig8107_data[i].clear();
 
         QString nameStr(header.mid(8,40));       //need to change magic numbers
         ui->sensorName->setText(nameStr);
@@ -396,13 +396,13 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
 
         for( size_t j=0; j<8; j++ )
         {
-             dig8207_data[j].clear( );
+             dig8107_data[j].clear( );
         }
 
         while ( (inFile.atEnd() != true)  )
         {
 
-            if (!readNextDigHeader(&inFile, &header))
+            if (!readNextDIG8107Header(&inFile, &header))
                 break;
             //   ui->dataType->setText(QString::number(block->dataTypeOld));
             //   ui->nanoSecondsPerSample->setText(QString::number(block->nanoSecondsPerSa
@@ -417,9 +417,9 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
             ui->numberOfChannels->setText(QString::number(block->numChannels));
             count ++;
 
-            ui->sampleFrequency->setText(QString::number((1000000.0/block->nanoSecondsPerSample),'f', 4));
+            ui->sampleFrequency->setText(QString::number((1000000000.0/block->nanoSecondsPerSample),'f', 4));
 
-            block = reinterpret_cast<const DIG8207_BLOCK *>(header.constData());         //push pointer up to data
+            block = reinterpret_cast<const DIG8107_BLOCK *>(header.constData());         //push pointer up to data
 
             if (!readNextData(&inFile, &data, block->dataSize))                          //read data
                 break;
@@ -437,7 +437,7 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
             epoch.setMSecsSinceEpoch((block->correlationSecs * (qint64)1000) + (block->correlationUSecs/(qint64)1000));
             QDateTime blockTime = epoch.addMSecs(timestampMSecs);
 
-          //  qDebug(" blockTime ");
+
            // qDebug() << blockTime << endl;
 
             sample = reinterpret_cast<const qint32 *>(data.constData());
@@ -449,9 +449,9 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
                 for (size_t i=0; i<block->numSamplesPerChannel; i++)
                 {
                     double value = (double)*sample++ * SCALE;
-                    // double value = (double)1.15;
+
                     raw.push_back( value );
-                    dig8207_data[j].append( value );
+                    dig8107_data[j].append( value );
 
                     if(j == 0)
                     {
@@ -461,6 +461,8 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
                         //This increments are added to the timestamp of the first chunk of the file
 
                         msecSinceBlockStart = ((double)i * (double)decimationNanoSecPerSample)/ (double)1000000.0;  //this can be different for different size chunks
+                      //  qDebug(" msecSinceBlockStart ");
+                     //   qDebug() << msecSinceBlockStart << endl;
                         x.append(sampleTimeTest + msecSinceBlockStart);
 
                     }
@@ -473,7 +475,7 @@ void MainWindow::on_treeView_doubleClicked(QModelIndex index)
             //have to add in one sample's worth of time because the above loop in indexed with a 0
             sampleTimeTest = sampleTimeTest + msecSinceBlockStart + (((double)decimationNanoSecPerSample)/ (double)1000000.0);
 
-            blockFooter = reinterpret_cast<const DIG8207_BLOCK_FOOTER *>(footer.constData());
+            blockFooter = reinterpret_cast<const DIG8107_BLOCK_FOOTER *>(footer.constData());
 
             if (!readNextDigFooter(&inFile, &footer))
                 qDebug("Error Reading FilePlotDatae");
@@ -543,7 +545,7 @@ void MainWindow::on_pushButton_clicked()
 
 }
 
-bool MainWindow::readFileHeader(QFile *file, QByteArray *header)
+bool MainWindow::readIfsFileHeader(QFile *file, QByteArray *header)
 {
     *header = file->read(sizeof(IFS_FILE_BLOCK));
 
@@ -554,7 +556,7 @@ bool MainWindow::readFileHeader(QFile *file, QByteArray *header)
 }
 
 
-bool MainWindow::readNextHeader(QFile *file, QByteArray *header)
+bool MainWindow::readNextIfsHeader(QFile *file, QByteArray *header)
 {
     *header = file->read(sizeof(IFS_BLOCK));
 
@@ -564,28 +566,18 @@ bool MainWindow::readNextHeader(QFile *file, QByteArray *header)
     return true;
 }
 
-bool MainWindow::readFiledig2Header(QFile *file, QByteArray *header)
+bool MainWindow::readFileDIG8207Header(QFile *file, QByteArray *header)
 {
-    *header = file->read(sizeof(DIG8107_FILE_BLOCK));
+    *header = file->read(sizeof(DIG8207_FILE_BLOCK));
 
-    if (header->size() != sizeof(DIG8107_FILE_BLOCK))
+    if (header->size() != sizeof(DIG8207_FILE_BLOCK))
         return false;
 
     return true;
 }
 
 
-bool MainWindow::readNextdig2Header(QFile *file, QByteArray *header)
-{
-    *header = file->read(sizeof(DIG8107_BLOCK));
-
-    if (header->size() != sizeof(DIG8107_BLOCK))
-        return false;
-
-    return true;
-}
-
-bool MainWindow::readNextDigHeader(QFile *file, QByteArray *header)
+bool MainWindow::readNextDIG8207Header(QFile *file, QByteArray *header)
 {
     *header = file->read(sizeof(DIG8207_BLOCK));
 
@@ -595,11 +587,21 @@ bool MainWindow::readNextDigHeader(QFile *file, QByteArray *header)
     return true;
 }
 
+bool MainWindow::readNextDIG8107Header(QFile *file, QByteArray *header)
+{
+    *header = file->read(sizeof(DIG8107_BLOCK));
+
+    if (header->size() != sizeof(DIG8107_BLOCK))
+        return false;
+
+    return true;
+}
+
 bool MainWindow::readNextDigFooter(QFile *file, QByteArray *footer)
 {
-    *footer = file->read(sizeof(DIG8207_BLOCK_FOOTER));
+    *footer = file->read(sizeof(DIG8107_BLOCK_FOOTER));
 
-    if (footer->size() != sizeof(DIG8207_BLOCK_FOOTER))
+    if (footer->size() != sizeof(DIG8107_BLOCK_FOOTER))
         return false;
 
     return true;
@@ -662,7 +664,7 @@ void MainWindow::on_WriteData_clicked()
 
     }
 
-    if (SensorSelected == "DIG-8207")
+    if (SensorSelected == "DIG-8107")
     {
 
         if (fileName != NULL)
@@ -674,18 +676,28 @@ void MainWindow::on_WriteData_clicked()
             {
                 char *tempX;
                 QByteArray tempX2;
-
+                QString delim = ".";
                 QDateTime timeOut;
+              //  qDebug(" x.at(i) ");
+              //  qDebug()  << qSetRealNumberPrecision( 15 ) << x.at(i) << endl;
 
+                QString valueAsString = QString("%1").arg(x.at(i),0,'f',2);
+               //  qDebug()  << valueAsString << endl;
+                int pos = valueAsString.indexOf(delim);
+                QString nano = valueAsString.right(2);
+               // qDebug()  << nano << endl;
                 timeOut = QDateTime::fromMSecsSinceEpoch(x.at(i));
 
-                tempX2.append(timeOut.toString("yyyyMMMdd hh:mm:ss.zzzzz"));
+                tempX2.append(timeOut.toString("yyyyMMMdd hh:mm:ss.zzz"));
 
-                qDebug() << tempX2 << endl;
+                tempX2.append(nano);
+
+               // qDebug() << tempX2 << endl;
                 tempX = tempX2.data();    ui->SensorComboBox->addItem("DIG-8207");
 
+
                 sprintf(outBuf, "%s %016.13f %016.13f %016.13f %016.13f %016.13f %016.13f %016.13f %016.13f\n",
-                        tempX, dig8207_data[0].at(i), dig8207_data[1].at(i),dig8207_data[2].at(i),dig8207_data[3].at(i),dig8207_data[4].at(i),dig8207_data[5].at(i),dig8207_data[6].at(i),dig8207_data[7].at(i));
+                        tempX, dig8107_data[0].at(i), dig8107_data[1].at(i),dig8107_data[2].at(i),dig8107_data[3].at(i),dig8107_data[4].at(i),dig8107_data[5].at(i),dig8107_data[6].at(i),dig8107_data[7].at(i));
                 outFile.write(outBuf, strlen(outBuf));
                 ui->progressBar->setValue(100*i/x.size());
             }

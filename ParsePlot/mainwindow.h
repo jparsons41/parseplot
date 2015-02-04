@@ -38,16 +38,26 @@ private:
     Ui::MainWindow *ui;
     QDirModel           *dirModel;
     QFileSystemModel    *fileModel;
-    bool readFileHeader(QFile *file, QByteArray *header);
-    bool readFiledig2Header(QFile *file, QByteArray *header);
+    bool readIfsFileHeader(QFile *file, QByteArray *header);
+    bool readNextIfsHeader(QFile *file, QByteArray *header);
+
+    bool readNextDIG8107Header(QFile *file, QByteArray *header);
+    bool readNextDigFooter(QFile *file, QByteArray *header);
+
+
+    bool readFileDIG8207Header(QFile *file, QByteArray *header);
+    bool readNextDIG8207Header(QFile *file, QByteArray *header);
+
+
+
+
     void saveSettings();
     void loadSettings();
-    bool readNextHeader(QFile *file, QByteArray *header);
-    bool readNextdig2Header(QFile *file, QByteArray *header);
+
+
     bool readNextHeaderOld(QFile *file, QByteArray *header);
 
-    bool readNextDigHeader(QFile *file, QByteArray *header);
-    bool readNextDigFooter(QFile *file, QByteArray *header);
+
     bool readNextData(QFile *file, QByteArray *data, qint64 length);
     void timestampToSecUsec(quint64 timestamp, quint32 *secs, quint32 *usecs);
    // QVector <double> m_data[2], raw, x, dX;

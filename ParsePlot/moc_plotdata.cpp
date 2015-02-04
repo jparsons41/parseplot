@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'plotdata.h'
 **
-** Created: Tue Jun 24 10:52:53 2014
+** Created: Tue Feb 3 14:33:24 2015
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!

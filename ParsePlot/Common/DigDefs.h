@@ -83,7 +83,7 @@ typedef struct
     // data follows directly after this header
     // the data is planar, i.e. the samples for each channel are contiguous
     // the planes are in numerical ascending order
-} DIG8207_BLOCK;
+} DIG8107_BLOCK;
 
 typedef struct
 {
@@ -97,7 +97,7 @@ typedef struct
     uint32_t footer8;
     // new madas has footer.  need to find out what is in it and add functionality
 
-} DIG8207_BLOCK_FOOTER;
+} DIG8107_BLOCK_FOOTER;
 
 
 typedef struct
@@ -109,7 +109,7 @@ typedef struct
     float calibrationLevel;     //starts at 50
     char calibrationDate[32];
 
-} DIG8107_FILE_BLOCK;
+} DIG8207_FILE_BLOCK;
 
 typedef struct
 {
@@ -164,7 +164,7 @@ typedef struct
   uint32_t spare7;
   uint32_t spare8;
 
-} DIG8107_BLOCK;
+} DIG8207_BLOCK;
 
 
 //	DIG8107 setting strings for config file
